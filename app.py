@@ -3,7 +3,7 @@ import json
 import numpy as np
 import pandas as pd
 import random
-from flask import Flask, session, render_template, request
+from flask import Flask, session, render_template, request, jsonify
 from sqlalchemy import create_engine
 import datetime
 import config
@@ -38,7 +38,7 @@ def index():
 @app.route("/api/v1.0/stationdata")
 def stationdata():
     #Return JSON of station data table
-    return pd.read_sql("SELECT * FROM station_data", con=conn).to_json()
+    return jsonify(pd.read_sql("SELECT * FROM station_data", con=conn).to_json())
 
 @app.route("/api/v1.0/fcst")
 def fcst():
@@ -50,14 +50,16 @@ def obs():
     #Return obs data tables
     return pd.read_sql("SELECT * FROM obs", con=conn).to_json() 
 
-
-@app.route("/api/v1.0/stationheatmap")
-def stationheatmap():
-
-    return render_template("index.html")
-
+@app.route("/api/v1.0/groupbystationdata")
+def groupbystationdata():
+    df = pd.read_sql("SELECT * FROM station_data", con=conn)
+    df= df.groupby('region')['region'].count()
+    return jsonify(df.to_json())
 
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+#, methods=['GET'], strict_slashes=False
